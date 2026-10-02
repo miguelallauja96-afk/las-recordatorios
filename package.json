@@ -1,0 +1,6 @@
+{
+  "name": "las-disciplina-recordatorios",
+  "private": true,
+  "description": "Envía los avisos de Lª S Disciplina aunque la app esté cerrada",
+  "dependencies": { "firebase-admin": "^13.0.0" }
+}
