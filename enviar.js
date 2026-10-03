@@ -7,6 +7,9 @@ const db = admin.firestore(), fcm = admin.messaging();
 
 const VENTANA = 40;          // no avisa bloques de hace más de 40 min
 const CIERRE = 21 * 60 + 30; // 9:30 p. m.: aviso de cierre del día
+const EMOJI = { fe: "🙏", cuerpo: "💪", trabajo: "🛵", nodo: "🔷", las: "✦", proyecto: "🚀", aprender: "📚", dinero: "💰", familia: "🏠", descanso: "🌙" };
+const FRASES = ["Construye en silencio.", "Un paso más hacia tu meta.", "La disciplina te lleva lejos.", "Hazlo aunque no tengas ganas.", "Presencia antes que apariencia.", "Elige lo que te construye.", "Hoy cuenta."];
+const frase = () => FRASES[Math.floor(Math.random() * FRASES.length)];
 const AREAS = { fe: "Fe", cuerpo: "Cuerpo", trabajo: "Trabajo", nodo: "Nodo", las: "Lª S", proyecto: "Proyecto", aprender: "Aprender", dinero: "Dinero", familia: "Familia", descanso: "Descanso" };
 
 function ahora(tz) {
@@ -29,9 +32,10 @@ const aMin = t => { const [h, m] = String(t || "").split(":").map(Number); retur
     const env = d.pushEnv || {};
     const desde = env.fecha === n.fecha ? env.min : n.min - VENTANA;
 
+    const antes = parseInt(d.perfil && d.perfil.antes) || 0; // avisar X minutos antes
     const avisos = bloques
-      .filter(b => { const t = aMin(b.t); return t > desde && t <= n.min && t > n.min - VENTANA && !hecho[b.id]; })
-      .map(b => ({ title: `${b.t} · ${b.task}`, body: "Lª S · " + (AREAS[b.cat] || "Tu día"), tag: `${n.fecha} ${b.id}` }));
+      .filter(b => { const t = aMin(b.t) - antes; return t >= 0 && t > desde && t <= n.min && t > n.min - VENTANA && !hecho[b.id]; })
+      .map(b => ({ title: `${EMOJI[b.cat] || "⏰"} ${b.t} · ${b.task}`, body: `${antes ? "En " + antes + " min" : "Ahora"} · ${AREAS[b.cat] || "Tu día"} — ${frase()}`, tag: `${n.fecha} ${b.id}` }));
 
     let cierre = env.cierre;
     if (n.min >= CIERRE && env.cierre !== n.fecha) {
