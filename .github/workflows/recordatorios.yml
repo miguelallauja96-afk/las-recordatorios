@@ -1,18 +1,27 @@
 name: Recordatorios
 on:
-  schedule:
-    - cron: "*/10 * * * *"
+  # cron-job.org lo llama CADA MINUTO (ver GUIA-NOTIFICACIONES).
   workflow_dispatch:
+  # respaldo por si cron-job.org falla (GitHub puede atrasarse)
+  schedule:
+    - cron: "*/15 * * * *"
+concurrency:
+  group: recordatorios
+  cancel-in-progress: false
 jobs:
   enviar:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 4
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install --omit=dev --no-audit --no-fund
+      - uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: modulos-${{ hashFiles('package.json') }}
+      - run: npm install --omit=dev --no-audit --no-fund --prefer-offline
       - run: node enviar.js
         env:
           FIREBASE_SA: ${{ secrets.FIREBASE_SA }}
